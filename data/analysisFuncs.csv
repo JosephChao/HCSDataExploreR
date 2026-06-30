@@ -1,0 +1,54 @@
+﻿Analysis,filter_raw_input,filter_analysis_input,multi_input,filter_reference,Description,Equation,Description_2,Equation_2
+Column Descriptions:,"Used to filter Raw data input options based on selected Analysis option. ""ALL"" indicates no filtering of Raw options","Filter analysis input options based on Reference data. T = Reference data needed, F = No reference data needed, NA = not applicable except for Plot Helper","Tells the app to load the indicated input field needed for performing the analysis (Compare = layout controls, Reference = raw data input, Factor = number, operation = math operations)","Filter the Reference data input options. ALL = no filtering. Ref = ""%(LOW_|HIGH_)(?=.*Ch2)(?!.*(Ratio|Diff))""",,,,
+Raw Data,,N/A,,,Plot raw values.,,,
+% Cell Survival,ObjectCount,F,compare,,"Calculate the percentage of the number of host cells (Ch1) in the well (<i>Sample</i>) compared to the average cell count of the Positive, Negative or Uninfected Control (<i>µ<sub>Control</sub></i>).<br>",100\times \frac{Sample}{\mu_{Control}},Requires ObjectCount (Ch1) raw data input.,
+Normalized % Infected,ObjectCount,T,reference,Ref,Calculate the percentage of infected host cells (<i>%HIGH</i>) normalized to the average host cell count (<i>µ<sub>ObjectCount</sub></i>). See <i>Infected Count</i> for more details.<br>,\%HIGH\times \frac{ObjectCount}{\mu_{ObjectCount}},Requires ObjectCount (Ch1) raw data input and %HIGH or %LOW reference data.,
+Infected Count,ObjectCount,T,reference,Ref,Calculate the number of infected host cells (Ch1) as determined by fluorescence detected in Ch2 based on Reference Levels.<br>,Sample\times \frac{\%HIGH}{100},"Infected analysis options require the set up of a threshold in Reference Levels, such that cells above the threshold represent infected cells (%HIGH), while cells below the threshold represent uninfected cells (%LOW).
+<br><br>
+Requires ObjectCount (Ch1) raw data input and %HIGH or %LOW reference data.",
+% Growth,MEAN,F,,,"Calculate the % intracellular growth (Ch2) by normalizing the data of the well (<i>Sample</i>) to the average of the Positive Control wells (<i>µ<sub>p</sub></i>), defined as 0&nbsp;% growth, and the average of the Negative Control wells (<i>µ<sub>n</sub></i>), defined as 100&nbsp;% growth. If no Positive control is present, the average Positive Control is assumed to be 0. Requires a Negative Control.<br>",100\times \frac{Sample\ -\ \mu_{p}}{\mu_{n}\ -\ \mu_{p}},Requires MEAN (Ch2) raw data input.,
+% Inhibition,MEAN,F,,,"Calculate the % intracellular inhibition (Ch2) by normalizing the data of the well (<i>Sample</i>) to the average of the Positive Control wells (<i>µ<sub>p</sub></i>), defined as 100&nbsp;% inhibition, and the average of the Negative Control wells (<i>µ<sub>n</sub></i>), defined as 0&nbsp;% inhibition. If no Positive control is present, the average Positive Control is assumed to be 0. Requires a Negative Control.<br>",100\times \frac{Sample\ -\ \mu_{n}}{\mu_{p}\ -\ \mu_{n}},"Equivalent to 100 &ndash; <i>% Growth</i>
+<br><br>
+Requires MEAN (Ch2) raw data input.",
+Z Factors,ALL,F,compare,,Calculate the Z' or Z Factor of the sample wells compared to the Positive or Negative Control wells. Requires replicate wells.<br>,1-\frac{3(\sigma_{Sample}\ +\ \sigma_{Control})}{\vert\mu_{Sample}\ -\ \mu_{Control}\vert},"Requires MEAN (Ch2) raw data input.
+<br><br><br>
+The Z' or Z Factor of the plate (see Z Factor tab) is defined by the following formula:",1-\frac{3(\sigma_{p}\ +\ \sigma_{n})}{\vert\mu_{p}\ -\ \mu_{n}\vert}
+Z Score,ALL,F,,,,,,
+Total Fluorescence,MEAN,F,reference,ObjectCount,Calculate the total intracellular fluorescence of the well. MEAN Ch2 data is the mean per SelectedObjectCount (Ch1). Total Fluorescence multiplies Ch2 data (<i>Sample</i>) by the SelectedObjectCount.<br>,Sample \times SelectedObjectCount,Requires MEAN (Ch2) raw data input.,
+% Growth Infected,MEAN,T,reference,Ref,"Calculate the % intracellular growth of infected cells (<i>Infected</i>) by normalizing the sample to the average of infected cells in the Positive Control wells (<i>µ<sub>p&nbsp;Infected</sub></i>), defined as 0&nbsp;% growth, and the average of infected cells in the Negative Control wells (<i>µ<sub>n&nbsp;Infected</sub></i>), defined as 100&nbsp;% growth. If no Positive control is present, the average infected Positive Control is assumed to be 0.  Requires a Negative Control. See <i>Infected</i> for more details.<br>","100\times \frac{Infected\ -\ \mu_{p\ Infected}}{\mu_{n\ Infected}\ -\ \mu_{p\ Infected}}
+\\
+Infected = Sample \times \frac{100}{\%HIGH}","(<i>%HIGH</i>&nbsp;=&nbsp;100&nbsp;&ndash;&nbsp;<i>%LOW</i>)
+<br><br>
+Requires MEAN (Ch2) and %HIGH or %LOW Ch2 raw data input.",
+% Inhibition Infected,MEAN,T,reference,Ref,"Calculate the % intracellular inhibition of infected cells (<i>Infected</i>) by normalizing the sample to the average of infected cells in the Positive Control wells (<i>µ<sub>p&nbsp;Infected</sub></i>), defined as 100&nbsp;% inhibition, and the average of infected cells in the Negative Control wells (<i>µ<sub>n&nbsp;Infected</sub></i>), defined as 0&nbsp;% inhibition. If no Positive Control is present, the average infected Positive Control is assumed to be 0.  Requires a Negative Control. See <i>Infected</i> for more details.<br>","100\times \frac{Infected\ -\ \mu_{n\ Infected}}{\mu_{p\ Infected}\ -\ \mu_{n\ Infected}}
+\\
+Infected = Sample \times \frac{100}{\%HIGH}","(<i>%HIGH</i>&nbsp;=&nbsp;100&nbsp;&ndash;&nbsp;<i>%LOW</i>)
+<br><br>
+Equivalent to 100&nbsp;&ndash;&nbsp;<i>%&nbsp;Growth&nbsp;Infected</i>
+<br><br>
+Requires MEAN (Ch2) and %HIGH or %LOW Ch2 raw data input.",
+MEAN Infected,MEAN,T,reference,Ref,Calculate the MEAN fluorescence data (Ch2) for infected cells only.<br>,Sample \times \frac{100}{\%HIGH}\ \ or\ \ Sample \times \frac{100}{100\ -\ \%LOW},"Infected analysis options require the set up of a threshold in Reference Levels, such that cells above the threshold represent infected cells (%HIGH), while cells below the threshold represent uninfected cells (%LOW).
+<br><br>
+CX5 MEAN data (Ch2) is the mean fluoresence per cell count (Ch1). In order to calculate the MEAN data of infected cells only, the MEAN is multiplied by the ObjectCount, then divided by the Infected Count, and is simplified to the above formula.
+<br><br>
+Requires MEAN (Ch2) and %HIGH or %LOW Ch2 raw data input.",
+% Spread,%,T,,,"Normalize the % of infected cells (<i>Sample</i>) to the average % of infected cells in the Positive Control wells (<i>µ<sub>p</sub></i>), defined as 0&nbsp;% Spread, and the average % of infected cells in the Negative Control wells (<i>µ<sub>n</sub></i>), defined as 100&nbsp;% Spread. If no Positive control is present, the Positive Control is assumed to be 0.<br>",100\times \frac{Sample\ -\ \mu_{p}}{\mu_{n}\ -\ \mu_{p}},"This calculation requires the set up of a threshold in Reference Levels, such that cells above the threshold represent infected cells (%HIGH), while cells below the threshold represent uninfected cells (%LOW).
+<br><br>
+Requires %HIGH or %LOW Ch2 raw data input.",
+% Clearance,%,T,,,"Normalize the % of infected cells (<i>Sample</i>) to the average % of infected cells in the Positive Control wells (<i>µ<sub>p</sub></i>), defined as 100&nbsp;% Clearance, and the average % of infected cells in the Negative Control wells (<i>µ<sub>n</sub></i>), defined as 0&nbsp;% Clearance. If no Positive control is present, the Positive Control is assumed to be 0.<br>",100\times \frac{Sample\ -\ \mu_{n}}{\mu_{p}\ -\ \mu_{n}},"Equivalent to 100 &ndash; <i>% Spread</i><br><br>
+This calculation requires the set up of a threshold in Reference Levels, such that cells above the threshold represent infected cells (%HIGH), while cells below the threshold represent uninfected cells (%LOW).
+<br><br>
+Requires %HIGH or %LOW Ch2 raw data input.",
+% HIGH,%,T,,,Convert % of uninfected cells (%LOW) to % of infected cells.<br>,100\ -\ \%LOW,"This calculation requires the set up of a threshold in Reference Levels, such that cells above the threshold represent infected cells (%HIGH), while cells below the threshold represent uninfected cells (%LOW).
+<br><br>
+Requires %LOW Ch2 raw data input.",
+Transform,ALL,F,operation,ALL,"Each Raw Data value will be transformed according to the selected operation by the corresponding <b>Factor</b>,<b> Reference</b> data value, or average selected layout <b>Definition</b>. Multiple transformations can be <b>chained</b> together. For example:
+<br>",\frac{Y_{1} \times Y_{2}}{\mu_{p}} \times 100,"<b>Factor</b> is a constant that all <i>Raw Data</i> is transformed by. For example you could multiply the <i>Raw Data</i> by 100.
+<br><br>
+<b>Reference</b> is a second selected data parameter (under<i> Reference:</i>) that each row of data will be transformed by. For example if you have the mean intensity per cell as your <i>Raw Data</i> (<i>Y<sub>1</sub></i>) and have a second data parameter of the total cell count (<i>Y<sub>2</sub></i>) and wanted to find the total intensity of all cells, you would multiply the first data parameter (<i>Raw Data</i> = mean intensity), by the second data parameter (<i>Reference</i> = cell count) for each well (row of data).
+<br><br>
+<b>Definition</b> is the well layout definition as defined in the <i>Plate Layout Entry</i>. For example if you wanted to divide all values by the average of the <i>Positive Control</i> (<i>µ<sub>p</sub></i>), you would select <i>'Sample'</i> as the <i>Definition</i> and <i>'Positive Control'</i> as the <i>Selection</i>. If you have multiple microplate data loaded and want to divide all values on a single plate by the <i>Postive Control</i> values on that same plate, you would select <i>'plate'</i> under <i>Grouping</i>.
+<br><br>
+<b>Chaining Analysis Operations</b>
+<br>
+Data transformations can be saved and chained together to perform complex mathematical operations. Any <i>Analysis</i> operation can be saved using the 'Plus (<b>+</b>)' button. This will add the results of the analysis operation to the list of data parameters found under <i>Raw Data</i>, which can then be selected and subsequently transformed.",

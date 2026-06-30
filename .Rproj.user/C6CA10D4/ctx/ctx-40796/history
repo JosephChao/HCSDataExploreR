@@ -1,0 +1,512 @@
+),  #close tabPanel "Plate Layout Entry"
+#### Analysis Tab ####
+# analysis_tab,
+tabPanel("Analysis",
+verticalLayout(
+sidebarLayout(
+sidebarPanel(
+# uiOutput("dynamic_sidebar"),  # adjust sidebar height
+style = "height: 90vh; overflow-y: auto;",
+# Plot Helper show all analysis functions
+conditionalPanel(
+condition = "input.tabset_panel == 'Plot Helper'",
+uiOutput("show_all_analysis_ph")
+),
+# Multiplate input options
+conditionalPanel(
+condition = "output.multiplate_output && ['Bar Chart', 'Scatter Plot', 'Curve Fit'].indexOf(input.tabset_panel) > -1",
+# condition = "input.tabset_panel == 'Bar Chart' || input.tabset_panel == 'Scatter Plot' || input.tabset_panel == 'Curve Fit'",
+# uiOutput("multiplate_n"),
+div(style="display:inline-block; margin-top: 0%; width:79%",
+# title="Select which image fields to load",
+uiOutput("multiplate_n")),
+div(style="display:inline-block; margin-top: 7%; float: right; width:19%",
+title="Select all plates",
+uiOutput("multiplate_add_all")),
+conditionalPanel(
+condition = "input.multiplate_n.length > 1",
+uiOutput("plate_slider_avg_tl"), # Show plate slider and take plate average for biological replicates
+uiOutput("plate_slider")  # Slider input for filtering by plate - mainly for changing duration time point
+)
+),
+# conditionalPanel(
+#   condition = "input.tabset_panel != 'Plot Helper'",
+dataSelection_moduleUI("dataSelection"),
+# ),
+uiOutput("graph_type_ph"),
+# uiOutput("bc_sp_inputs_tl_ph"),
+# uiOutput("dr_compound_selection_ph"),
+# Plate View input options
+conditionalPanel(
+condition = "input.tabset_panel == 'Plate View'",
+uiOutput("pv_outlier"),  # Show Outliers
+conditionalPanel(
+condition = "input.pv_outlier",
+# uiOutput("pv_outlier_function_tl"),  # Outlier function and Z-Score SD selection
+fluidRow(
+column(width = 8,
+uiOutput("pv_outlier_function")
+),
+conditionalPanel(
+condition = "input.pv_outlier_function == 'Z-Score'",
+column(width = 4,
+uiOutput("pv_outlier_z_score_SD")
+)
+)
+),
+uiOutput("pv_outlier_options_tl")  # Group data (by plate or by definition) and (un)exclude outlier wells
+),
+uiOutput("pv_checkbox_inputs_tl"),  # plate view input check boxes (display, average, ignore empty, ignore uninfected)
+),
+conditionalPanel(
+condition = "['Bar Chart', 'Scatter Plot', 'Plot Helper'].indexOf(input.tabset_panel) > -1",
+uiOutput("bc_sp_inputs_tl")  # Plot X-axis, Group by, and Include Sample inputs for Bar Chart and Scatter Plot
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Curve Fit'",
+uiOutput("dr_inputs_tl")  # Plot X-axis, Group by for Dose Response
+),
+uiOutput("manual_y_axis_tl"), # show Y-axis range sliderbar for BC SP and DR graphs and change to log scale
+uiOutput("y_axis_range"),  # adjust Y-axis for BC SP and DR graphs
+conditionalPanel(
+condition = "['Bar Chart', 'Scatter Plot', 'Curve Fit'].indexOf(input.tabset_panel) > -1",
+div(title = "SD: Standard Deviation; SEM: Standard Error of the Mean; bootCL: bootstrapped Confidence Limits",
+uiOutput("errorbars")
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Bar Chart'",
+uiOutput("boxplot_bc")
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Scatter Plot'",
+uiOutput("connecting_line_sp_tl")
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Curve Fit'",
+uiOutput("prediction_band_cf_tl")
+),
+uiOutput("data_points_tl"),
+# uiOutput("data_points_bcspcf_opts_tl"),  # data points, box plot, connecting line, prediction band
+# fluidRow(
+#   # div(
+#     # style = "padding-top: -20px",
+#   column(width = 6,
+#          # div(title = "Plot all replicate data points",
+#              title = "Plot all replicate data points",
+#              # style = "margin-bottom: 0px",
+#              uiOutput("data_points")
+#          # )
+#   ),
+#   conditionalPanel(
+#     condition = "input.tabset_panel == 'Bar Chart'",
+#     column(width = 6,
+#            # style = "margin-bottom: 0px",
+#            uiOutput("boxplot_bc"))  # boxplot graph for bar chart only)
+#   ),
+#   conditionalPanel(
+#     condition = "input.tabset_panel == 'Scatter Plot'",
+#     column(width = 6,
+#            # style = "margin-bottom: 0px",
+#            uiOutput("connecting_line_sp"))  # boxplot graph for bar chart only)
+#   ),
+#   conditionalPanel(
+#     condition = "input.tabset_panel == 'Curve Fit'",
+#     column(width = 6,
+#            # style = "margin-bottom: 0px",
+#            uiOutput("prediction_band_cf"))  # boxplot graph for bar chart only)
+#   )
+#   # )
+# ),
+# uiOutput("log_xy_multigraph_tl"),
+# fluidRow(
+#   # style = "margin-top: -20px",
+#   # div(style = "margin-top: -6%",
+#       column(width = 6,
+#              # div(title = "Plot all replicate data points",
+#                  uiOutput("log_y_axis")),
+#       conditionalPanel(
+#         condition = "input.tabset_panel == 'Scatter Plot'",
+#         column(width = 6,
+#                uiOutput("log_x_axis_sp"))  # boxplot graph for bar chart only)
+#       ),
+#       conditionalPanel(
+#         condition = "input.tabset_panel == 'Curve Fit'",
+#         column(width = 6,
+#                uiOutput("multigraph_cf"))  # boxplot graph for bar chart only)
+#       )
+# ),
+fluidRow(
+div(
+column(width = 4,
+title = "Add Threshold line(s) on the Y-axis. Comma separate to add multiple lines",
+style = "padding: 0px; padding-left: 15px",
+uiOutput("threshold_line")  # Add threshold line
+)
+),
+div(title = "Manually adjust the Y-axis. Requires both Min and Max inputs. Leave empty to auto-adjust.",
+column(width = 4,
+style = "padding: 0px; padding-left: 15px",
+uiOutput("y_axis_min")),
+column(width = 4,
+style = "padding: 0px; padding-right: 15px",
+uiOutput("y_axis_max"))
+)
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Curve Fit'",
+div(
+fluidRow(
+column(width = 6,
+style = "padding: 0px; padding-left: 15px",
+uiOutput("filter_selection_dr")),
+column(width = 6,
+style = "padding: 0px; padding-right: 15px",
+uiOutput("best_fit_function"))
+))
+),
+# div(title = "Add Threshold line(s) on the Y-axis. Comma separate to add multiple lines",
+#     uiOutput("threshold_line")  # Add threshold line
+# ),
+uiOutput("include_sample"),  # Include Sample types
+div(title = "Excluded data will be removed prior to analysis calculations. This does not apply to control wells.",
+uiOutput("data_filters")
+),
+uiOutput("exclude_filters"),
+# fluidRow(
+#   column(width = 4,
+#          shinyWidgets::dropdownButton(
+#            inputId = "filter_dropdown",
+#
+#            actionButton("filter_apply", "Apply",
+#                         style = paste0("padding: 10px; width: 100px; color: white; background-color:", "#31b0d5")),
+#
+#            uiOutput("data_filters"),
+#            uiOutput("exclude_filters"),
+#
+#            circle = FALSE, status = "default", label = "Filter Data", icon = icon("cog"), width = "100%",
+#            tooltip = shinyWidgets::tooltipOptions(title = "Filter Data")
+#          )
+#   ),
+#   column(width = 4,
+#          conditionalPanel(
+#            condition = "input.data_filters.length > 0",
+#            div(title="Filters have been applied. Clear all filters.",
+#                uiOutput("clear_exclude_filters")
+#            )
+#          )
+#   )
+# )
+),
+# Plot Helper go button
+uiOutput("go_ph"),
+# Show data table options
+conditionalPanel(
+condition = "input.tabset_panel != 'Plot Helper'",
+fluidRow(
+column(width = 6,
+div(style = "position:relative; margin-top: -6%",
+uiOutput("show_data_table"))),
+conditionalPanel(
+condition = "input.show_data_table",
+column(width = 6,
+uiOutput("data_table_format"))
+)
+),
+column(width = 6,
+div(title = "Download Data Table. Format can be adjusted under 'Show data table' checkbox.",
+downloadButton(outputId = "downloadDataButton", label = "csv"))),
+br()
+),
+# Multi plate view plots
+conditionalPanel(
+condition = "input.tabset_panel == 'Plate View'",
+br(),
+br(),
+uiOutput("show_pv2"),
+conditionalPanel(
+condition = "input.show_pv2",
+dataSelection_moduleUI("dataSelection_pv2"),
+br(),
+uiOutput("show_pv3")
+),
+conditionalPanel(
+condition = "input.tabset_panel == 'Plate View' && input.show_pv3",
+dataSelection_moduleUI("dataSelection_pv3")
+)
+),
+width = 3
+), #sidebarPanel
+mainPanel(
+tableOutput("test_table3"),
+tabsetPanel(id = "tabset_panel",
+tabPanel("Plot Helper",
+br(),
+# h4("Description"),
+uiOutput("ph_descriptions"),
+uiOutput("ph_equations"),
+uiOutput("ph_descriptions_2"),
+uiOutput("ph_equations_2"),
+uiOutput("ph_controls"),
+uiOutput("ph_tabs"),
+br(),
+tableOutput("ph_additional_options"),
+),
+tabPanel("Plate View",
+customization_moduleUI("pv_customization"),
+plotOutput("render_pv_plot", height = "500px"),
+# PlateViewPlot_moduleUI("render_pv_plot,"),
+conditionalPanel(
+condition = "input.show_data_table",
+tableOutput("render_pv_table")),
+conditionalPanel(
+condition = "input.show_pv2",
+br(),
+br(),
+plotOutput("render_pv_plot2", height = "500px"),
+# PlateViewPlot_moduleUI("render_pv_plot2")
+),
+conditionalPanel(
+condition = "input.show_pv3",
+br(),
+br(),
+plotOutput("render_pv_plot3", height = "500px"),
+# PlateViewPlot_moduleUI("render_pv_plot3")
+)
+),
+tabPanel("Bar Chart",
+customization_moduleUI("bc_customization"),
+plotOutput("render_bc_plot", height = "500px"),
+conditionalPanel(
+condition = "input.show_data_table",
+tableOutput("render_bc_table"))
+),
+tabPanel("Scatter Plot",
+customization_moduleUI("sp_customization"),
+plotOutput("render_sp_plot", height = "500px"),
+conditionalPanel(
+condition = "input.show_data_table",
+tableOutput("render_sp_table"))
+),
+tabPanel("Curve Fit",
+customization_moduleUI("cf_customization"),
+plotOutput("render_cf_plot", height = "500px"),
+conditionalPanel(
+condition = "input.show_data_table",
+tableOutput("render_cf_table"))
+),
+tabPanel("Z Factor",
+customization_moduleUI("zf_customization"),
+plotOutput("render_zf_plot", height = "500px"),
+conditionalPanel(
+condition = "input.show_data_table",
+tableOutput("render_zf_table"))
+)
+), #tabsetPanel
+textOutput("IC5090"),  # Display IC50 and IC90 values on DR graphs
+# br(),
+# # fluidRow(
+# #   uiOutput("downloadGraphButton")
+# # ),
+# fluidRow(
+#   column(width = 1,
+#          # uiOutput("downloadDataGraphButtons_tl")
+#   ),
+#   # column(width = 1,
+#   #        uiOutput("downloadDataButton")
+#   # ),
+#   column(width = 11,
+#          tableOutput("data_table_1")
+#   )
+# ),
+uiOutput("uitest"),
+tableOutput("test_table"),
+tableOutput("test_table2")
+# uiOutput("downloadDataButton"),  # Button for downloading data in graphpad format
+# tableOutput("data_table_1")
+) #mainPanel
+) #sidebarLayout
+) #verticalLayout
+), #tabPanel Analysis
+#### Multi Analysis tab ####
+tabPanel("Dual Analysis",
+verticalLayout(
+sidebarLayout(
+sidebarPanel(
+style = "height: 90vh; overflow-y: auto;",
+conditionalPanel(
+condition = "output.multiplate_output",
+uiOutput("multiplate_n2"),
+conditionalPanel(
+condition = "input.multiplate_n2.length > 1",
+uiOutput("plate_avg2"),
+)
+),
+# conditionalPanel(
+#   condition = "input.tabset_panel_dual != 'Plot Helper'",
+dataSelection_moduleUI("dataSelection_dual1"),
+dataSelection_moduleUI("dataSelection_dual2"),
+# uiOutput("show_pv2"),
+# uiOutput("show_bc2"),
+# uiOutput("show_sp2"),
+# uiOutput("show_dr2"),
+# uiOutput("plate_n2"),
+# uiOutput("plate_avg2"),  # take plate average first for biological replicates (all but PV tabs)
+#
+# uiOutput("field_n2"),
+#
+# uiOutput("raw_2.1_tl"),
+# uiOutput("analysis_2.1_tl"),
+# uiOutput("reference2.1"),
+# uiOutput("Factor2.1"),
+#
+# uiOutput("pv2_inputs_tl"),
+#
+# uiOutput("raw2.2"),
+# uiOutput("analysis_2.2_tl"),  # Analysis Compare and Reference options for BC, SP, DR
+# uiOutput("reference2.2"),
+# uiOutput("Factor2.2"),
+conditionalPanel(
+condition = "input.tabset_panel_dual == 'Scatter Plot 2'",
+uiOutput("SEM_indv_points2_tl"),
+uiOutput("x_axis_avg_sp2"),
+uiOutput("thresh_group_sp2_tl")
+),
+conditionalPanel(
+condition = "input.tabset_panel_dual == 'Curve Fit 2'",
+uiOutput("dr2_inputs_tl"),  # plot X axis and Group by inputs for DR
+uiOutput("dr2_selection"),
+uiOutput("avg_dr2"),
+),
+conditionalPanel(
+condition = "input.tabset_panel_dual == 'Bar Chart 2'",
+uiOutput("plot_bc2")
+),
+# conditionalPanel(
+#   condition = "input.tabset_panel_dual == 'Scatter Plot 2'",
+#   uiOutput("thresh_group_sp2_tl")
+# ),
+uiOutput("thresh_filters2_tl"),  # Y-axis Threshold for BC SP DR and Filter data for exclusion by input
+uiOutput("exclude_bcsp2"),
+uiOutput("include_sample2"),
+uiOutput("drc_fct2"),
+conditionalPanel(
+condition = "input.tabset_panel_dual == 'Scatter Plot 2'",
+uiOutput("group_order_sp2")
+),
+conditionalPanel(
+condition = "input.tabset_panel_dual == 'Scatter Plot 2' || input.tabset_panel_dual == 'Curve Fit 2'",
+uiOutput("manual_y_axis2"),
+conditionalPanel(
+condition = "input.manual_y_axis2",
+uiOutput("y_axis_range2")
+)
+),
+uiOutput("show_manual_labels2"),
+uiOutput("xy_labels2"),
+fluidRow(
+column(width = 6,
+uiOutput("show_data_table2")),
+column(width = 6,
+div(title = "Download Data Table. Format can be adjusted under 'Show data table' checkbox.",
+downloadButton(outputId = "downloadDataButton2", label = "csv")))
+),
+uiOutput("data_table2_format"),
+width = 3
+), #sidebarPanel plot2
+mainPanel(
+tabsetPanel(id = "tabset_panel_dual",
+tabPanel("Bar Chart 2", plotOutput("bar_chart2", height = "800px")),
+tabPanel("Scatter Plot 2", plotOutput("scatter_plot2", height = "500px")),
+tabPanel("Curve Fit 2", plotOutput("curve_fit2", height = "500px"))
+), #tabsetPanel
+# plotOutput("plot2", height = "500px"),
+br(),
+fluidRow(
+column(width = 1,
+uiOutput("downloadDataGraphButtons2_tl")
+),
+column(width = 11,
+tableOutput("data_table_2")
+)
+),
+tableOutput("testingdual")
+) #mainPanel dual plot
+) #sidebarLayout dual plot
+)  #verticalLayout dual plot
+), #tabPanel Dual Analysis
+# Save Project button. nth-child(4): 4 must match the position of Save Project button
+tabPanel(title = downloadButton('save_proj', 'Save Project', class = 'butt'),
+tags$head(tags$style(".butt {height:49px; top:-30px}",
+HTML(".navbar-nav {float: none !important;}
+.navbar-nav > li:nth-child(4) {float: right; height: 50px;}"))), id = "Save")
+)
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+shiny::runApp()
+runApp()
+shiny::runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+ceiling(2.4)
+ceiling(-1.1)
+ceiling(-1.9)
+shiny::runApp()
+shiny::runApp()
+runApp()
+shiny::runApp()
+runApp()
+shiny::runApp()
+runApp()
+runApp()
+shiny::runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+runApp()
+shiny::runApp()
+shiny::runApp()
+runApp()
+runApp()
+runApp()
+shiny::runApp()

@@ -1,0 +1,13 @@
+name: HCSDE
+title: HCSDE
+username: joseph-chao
+account: joseph-chao
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13625821
+bundleId: 9708165
+url: https://joseph-chao.shinyapps.io/HCSDE/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: DT_Utilities_analysis.R|profvis.R|singleApp.R|test/app.R|test_mod/app.R|testDT.R

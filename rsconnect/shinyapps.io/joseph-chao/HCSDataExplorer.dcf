@@ -1,0 +1,13 @@
+name: HCSDataExplorer
+title: HCSDataExplorer
+username: joseph-chao
+account: joseph-chao
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11776938
+bundleId: 12197836
+url: https://joseph-chao.shinyapps.io/HCSDataExplorer/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: incucyte_multimicroplate.R

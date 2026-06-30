@@ -1,0 +1,26 @@
+{
+    "id": "069C2FE0",
+    "path": "~/R/HCS_DataExplorer/dual_analysis_server.R",
+    "project_path": "dual_analysis_server.R",
+    "type": "r_source",
+    "hash": "672912461",
+    "contents": "",
+    "dirty": false,
+    "created": 1782775935157.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "446,15",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1782773367,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1782773367,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,29 @@
+Tab_source,Order,Additional Options,Option Descriptions
+Plate View,1,Display Values,Show/Hide data values
+Plate View,2,Display Averages,Calculate the average for wells with identical layout definitions
+Plate View,3,Ignore Empty Definitions,Hide/Show values for wells with no definition set up in the plate layout
+Plate View,4,Ignore Uninfected Wells,Hide/Show values for samples defined as Uninfected Control
+"Bar Chart, Scatter Plot",5,Show Plate Slider,This option is only displayed if multiple plates are loaded. Display a slider bar to quickly show data from different plates. Useful for timed experiments where each plate reprsents a different time point.
+"Bar Chart, Scatter Plot, Curve Fit",6,Average by plate (Biological replicates),"This option is only displayed if multiple plates are loaded. Take the average of identical layout definitions on each plate first (technical replicates), then plot the average of these averages for identical layout definitions on different plates (biological replicates). This is intended for plotting biological replicates."
+Curve Fit,7,Selection,"When multiple curves can be plotted based on the 'Group by:' input field, this input can be used to filter which curve(s) to plot."
+Curve Fit,8,Best-Fit Function,Select which best-fit curve function to plot from the Dose Finding package.
+"Bar Chart, Scatter Plot, Curve Fit",9,Error Bars,"Select error bars to display: Standard Deviation (SD), Standard Error of the Mean (SEM), bootstrapped Confidence Limits (CL), or None"
+"Bar Chart, Scatter Plot, Curve Fit",10,Data Points,Show all  data points used to plot the mean of replicate values (based on the selected 'X-axis' plate layout definition)
+"Bar Chart, Scatter Plot, Curve Fit",11,Log scale Y-axis,Plot Y-axis as Log 10 scale. Negative numbers and 0 will not be plotted.
+Bar Chart,12,Box Plot,"Plot a Box Plot instead of Bar Chart, showing the median, interquartile range (box), maximum and minimum (whiskers), and outliers (points)."
+Scatter Plot,13,Log scale X-axis,Plot X-axis as Log 10 scale. Negative numbers and 0 will not be plotted.
+Scatter Plot,14,Connecting Line,Connect data points with a line based on the 'Group by:' field.
+Curve Fit,15,Prediction Band,Show the 95% confidence interval of the best-fit curve.
+Curve Fit,16,Separte Graphs,Only available when multiple curves are displayed. Check this box to plot each curve on separate graphs.
+"Bar Chart, Scatter Plot, Curve Fit",17,Threshold Line,Add horizontal line(s) to the graph at the designated Y intercept(s). Comma separate values to plot multiple threshold lines.
+"Bar Chart, Scatter Plot, Curve Fit",18,Min/Max Y-axis,Manually adjust the Y-axis range to display. Both Min and Max values must be entered and values must be valid for manual range to be displayed.
+"Bar Chart, Scatter Plot",19,Select sample types to display,Filter the data plotted by Sample definition
+"Bar Chart, Scatter Plot",20,Filter data by:,"Filter the data plotted by any layout definition, including plate, row,column, and well. Selecting the 'Filter data by' input will show input fields to select the data to exclude."
+"Plate View, Bar Chart, Scatter Plot, Curve Fit",21,Show data table,Show/Hide the data used to create the plot in wide or long format. Wide format can be directly copied into graphpad. Long format includes layout definitions.
+"Plate View, Bar Chart, Scatter Plot, Curve Fit",22,Download - csv,Download the shown data table in the selected Wide or Long format (even if 'Show data table' is not checked)
+Plate View,23,Show 2nd Plot,Display a second Heatmap arranged according to your plate layout. Useful for comparing two different data parameters or analysis calculations.
+"Plate View, Bar Chart, Scatter Plot, Curve Fit",24,Settings - Customize Plot Appearance,"Allows customizing the graph, axis, and legend titles and font size and other plot appearances. Apply button must be pressed to take effect. Customization settings apply only to the active graph."
+"Plate View, Bar Chart, Scatter Plot, Curve Fit",25,Download - png,Download the graph in high resolution.
+Bar Chart,26,Dual Analysis - Bar Chart 2,"On the Dual Analysis main tab. Display a  horizontal bar chart plotting two sets of data parameters. Useful for comparing compound cytotoxicity (% Cell Survival) and drug efficacy (% Inhibition) for eg. Only a single layout field can be plotted (ie, cannot plot grouped bar chart)."
+Scatter Plot,27,Dual Analysis - Scatter Plot 2,"On the Dual Analysis main tab. Display a scatter plot of one data parameter (Y-axis) vs the average of second data parameter (X-axis, averaged by replicate layout definition). Data can be grouped by threshold sectors when threshold values are applied or by layout definition."
+Curve Fit,28,Dual Analysis - Curve Fit 2,On the Dual Analysis main tab. Display a best-fit curve plot of two data parameters on the same graph. Useful for plotting cell toxicity (% Cell Survival ) and the concentration response curve (% Inhibition) for eg.

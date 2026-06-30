@@ -1,0 +1,27 @@
+{
+    "id": "91880B14",
+    "path": "~/R/HCS_DataExplorer/autodetector.R",
+    "project_path": "autodetector.R",
+    "type": "r_source",
+    "hash": "276903666",
+    "contents": "",
+    "dirty": false,
+    "created": 1782775954430.0,
+    "source_on_save": false,
+    "relative_order": 8,
+    "properties": {
+        "tempName": "Untitled8",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "75,9",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1782774307,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1782774307,
+    "read_only": false,
+    "read_only_alternatives": []
+}

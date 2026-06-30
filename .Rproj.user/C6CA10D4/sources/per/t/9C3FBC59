@@ -1,0 +1,26 @@
+{
+    "id": "9C3FBC59",
+    "path": "~/R/HCS_DataExplorer/modules.R",
+    "project_path": "modules.R",
+    "type": "r_source",
+    "hash": "736219812",
+    "contents": "",
+    "dirty": false,
+    "created": 1782775936739.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "664,16",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1782774179,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1782774179,
+    "read_only": false,
+    "read_only_alternatives": []
+}
