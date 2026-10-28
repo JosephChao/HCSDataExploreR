@@ -1,8 +1,19 @@
 detectorSearch <- list(
   "1"    = 1:3,
-  "Col"  = c("Col", "Column"),
-  "Well" = c("Well", "Well Name")
-)
+  "Column"  = c("column", "col", "c"),
+  "Well" = c("well", "well name", "wellid"),
+  "Field" = c("field", "fieldnumber", "site id"),
+  "Row" = c("row", "r")
+) # list order must match list order of header_names in plate_layout_server. All names must be in lower case
+
+# detectorSearch <- list(
+#   "1"    = 1:3,
+#   "Column"  = c("Column", "column", "Col", "col", "c"),
+#   "Well" = c("Well", "Well Name", "WellId", "well"),
+#   "Field" = c("Field", "FieldNumber", "Site ID"),
+#   "Row" = c("Row", "row", "r")
+# )
+
 detectorSeps <- list("," = ",", "\t" = "\t", ";" = ";")
 
 detectorNotFound <- list(
@@ -15,8 +26,8 @@ detectorNotFound <- list(
 detector_search_term_fn <- function(sep, DAT) {
   list(
     "1" = grepl(paste0(sep, "1", sep, "2", sep, "3"), DAT),
-    "Col" = grepl(paste0("Row", sep), DAT, ignore.case = TRUE) & (grepl(paste0("Column", sep), DAT, ignore.case = TRUE) | grepl(paste0("Col", sep), DAT, ignore.case = TRUE)),
-    "Well" = grepl(paste0("Well", sep), DAT, ignore.case = TRUE) | grepl(paste0("Well Name", sep), DAT, ignore.case = TRUE)
+    "Column" = (grepl(paste0("Row", sep), DAT, ignore.case = TRUE) | grepl(paste0("r", sep), DAT, ignore.case = TRUE)) & (grepl(paste0("Column", sep), DAT, ignore.case = TRUE) | grepl(paste0("Col", sep), DAT, ignore.case = TRUE) | grepl(paste0("c", sep), DAT, ignore.case = TRUE)),
+    "Well" = grepl(paste0("Well", sep), DAT, ignore.case = TRUE) | grepl(paste0("Well Name", sep), DAT, ignore.case = TRUE) | grepl(paste0("WellId", sep), DAT, ignore.case = TRUE)
   )
 }
 
@@ -47,7 +58,8 @@ autodetector_fn <- function(DAT, SEPS=detectorSeps) {
   
   
   # Find the column to search (Same column as "Well" or "Column", but column before if "1, 2, 3")
-  col_pos <- which(str_split(DAT[start_row], sep)[[1]] %in% detectorSearch[[table_id]])[1] - ifelse(table_id == "1", 1, 0)
+  # col_pos <- which(str_split(DAT[start_row], sep)[[1]] %in% detectorSearch[[table_id]])[1] - ifelse(table_id == "1", 1, 0)
+  col_pos <- which(str_split(tolower(DAT[start_row]), sep)[[1]] %in% detectorSearch[[table_id]])[1] - ifelse(table_id == "1", 1, 0)
   
   if (table_id == "1") {
     vals <- str_split(DAT[start_row], sep)[[1]]
@@ -72,7 +84,7 @@ autodetector_fn <- function(DAT, SEPS=detectorSeps) {
     table_id,
     "1"    = grepl("^([A-Za-z]|A[A-F]|a[a-f])$", tf),
     "Well" = grepl("^([A-Za-z]|A[A-F]|a[a-f])(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
-    "Col"  = grepl("^(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
+    "Column"  = grepl("^(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
     FALSE
   )
   

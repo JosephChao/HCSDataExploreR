@@ -115,7 +115,10 @@ default_sv <- sv <- reactiveValues(
   cf_customization = modifyList(customizationList, list(
     legend_key_sz_choice = 1.5,
     legend_position_choice = "bottom",
-    data_pt_sz_choice = 1.5
+    data_pt_sz_choice = 1.5,
+    ic_show_val_choice = TRUE,
+    ic_show_threshold_choice = TRUE,
+    ic_name_choice = ""
   )),
   
   zf_customization = modifyList(customizationList, list(
@@ -141,11 +144,12 @@ default_sv <- sv <- reactiveValues(
 excluded_plate_layout <- reactive({
   pl <- plate_layout_def_cf()
   pl <- pl[which(!is.na(pl$Sample)), ]  # remove rows with no definitions
-  ex_pos <- match("Excluded", names(pl))
-  cols <- (Sample_col - 1):(ex_pos - 1) # select columns from 'definition' up to but not including 'Excluded'
+  # ex_pos <- match("Excluded", names(pl))
+  # cols <- (Sample_col - 1):(ex_pos - 1) # select columns from 'definition' up to but not including 'Excluded'
   
   # Set excluded well definitions to NA
-  pl[which(pl$Exclude), cols] <- NA
+  # pl[which(pl$Exclude), cols] <- NA
+  pl[which(pl$Exclude), -match(c(Base_defs, "Excluded"), names(pl))] <- NA
   
   # Remove Excluded column
   pl$Excluded <- NULL
@@ -168,7 +172,8 @@ layout_info <- reactive({
     list(
       col_names = lcn,
       def_names = lcn[!lcn %in% c("Row", "Column", "Well", "Layout", "plate")],
-      numeric_names = lcn[lcn %in% Numeric_defs],
+      # numeric_names = lcn[lcn %in% Numeric_defs],
+      numeric_names = numeric_col_names_fn(pl),
       pos_ctrl = p_ctrl,
       neg_ctrl = n_ctrl,
       uninfected_ctrl = u_ctrl,
@@ -182,9 +187,9 @@ layout_info <- reactive({
 data_info <- reactive({
   dat <- hcs_data()
   layout_info <- layout_info()
-  numeric_col_ind <- as.logical(lapply(dat, is.numeric))
-  numeric_col_names <- names(dat)[which(numeric_col_ind)]
-  numeric_col_names <- numeric_col_names[!numeric_col_names %in% c("Plate", "Row", "Column", "Well", "plate", "Field")]
+  # numeric_col_ind <- as.logical(lapply(dat, is.numeric))
+  # numeric_col_names <- names(dat[, -ign])[which(numeric_col_ind)]
+  # numeric_col_names <- numeric_col_names[!numeric_col_names %in% c("Plate", "Row", "Column", "Well", "plate", "Field")]
   
   plt_n <- unique(dat$plate)
   multiplate <- length(plt_n) > 1
@@ -216,7 +221,8 @@ data_info <- reactive({
     list(
       platform = hcs,
       title = ttl,
-      ori_col_names = numeric_col_names,
+      # ori_col_names = numeric_col_names,
+      ori_col_names = numeric_col_names_fn(dat),
       multiplate_incl = multiplate,
       plate_n_options = plt_n,
       fields_incl = fld_inc,
@@ -459,7 +465,8 @@ output$group_fill <- renderUI({
 # Save X-axis selection
 observeEvent(input$plot_x_axis, {
   sv$plot_x_axis_choice <<- input$plot_x_axis
-  if (input$tabset_panel == "Scatter Plot" & input$plot_x_axis %in% Numeric_defs) {
+  if (input$tabset_panel == "Scatter Plot" & input$plot_x_axis %in% layout_info()$numeric_names) {
+  # if (input$tabset_panel == "Scatter Plot" & input$plot_x_axis %in% Numeric_defs) {
     shinyjs::enable("log_x_axis_sp")
   } else {
     shinyjs::disable("log_x_axis_sp")
@@ -1290,7 +1297,8 @@ sp_errorbar_width <- reactive({
   dat <- single_plate_slider_data()
   
   xInput <- input$plot_x_axis
-  numeric_x <- xInput %in% Numeric_defs
+  numeric_x <- xInput %in% layout_info()$numeric_names
+  # numeric_x <- xInput %in% Numeric_defs
   log_x <- mutate_null_fn(input$log_x_axis_sp) & numeric_x
   
   if (log_x) {
@@ -1324,9 +1332,12 @@ sp_plot <- reactive({
   pt_sz <- req(custom_inputs$sp$data_pt_sz_choice)
   
   dat <- single_plate_slider_data()
+  if (nrow(dat) == 0) {return(NULL)}  # prevent error if data not loaded yet
   
   xInput <- input$plot_x_axis
-  numeric_x <- xInput %in% Numeric_defs
+  
+  numeric_x <- xInput %in% layout_info()$numeric_names
+  # numeric_x <- xInput %in% Numeric_defs
   xAxisOrder <- custom_inputs$sp$x_axis_order_choice
   
   fillInput <- input$group_fill
@@ -1567,11 +1578,6 @@ cf_plot <- reactive({
   # Add line for the predicted curve
   p <- p + geom_line(data = curve_fit_df, aes(x = dose_seq, y = Prediction, colour = Selection), show.legend = custom_inputs$cf$show_legend_choice)
   
-  # Add IC function if applicable
-  if (grepl("Inhibition|Cell Survival|Clearance", input_dataSelection()$analysis) & length(seln) == 1) {
-    p <- p + ic_fn(curve_fit_df, dat, input_dataSelection()$analysis, ic_pos)
-  }
-  
   # Log10 transformation of x-axis
   p <- p + scale_x_continuous(trans = 'log10')
   
@@ -1580,9 +1586,17 @@ cf_plot <- reactive({
     p <- p + facet_wrap(~Selection)
   }
   
-  # Add horizontal threshold line if applicable
+  # Add threshold line / interpolation value(s)
   if (isTruthy(input$threshold_line)) {
-    p <- p + geom_hline(yintercept = threshold_line_fn(input$threshold_line), linetype = "dashed", color = "grey")
+    thr <- threshold_line_fn(input$threshold_line)
+    
+    if (custom_inputs$cf$ic_show_threshold_choice) {
+      p <- p + geom_hline(yintercept = thr, linetype = "dashed", color = "grey")
+    }
+    
+    if (length(seln) == 1 & custom_inputs$cf$ic_show_val_choice) {
+      p <- p + ic_fn(curve_fit_df, dat, input_dataSelection()$analysis, ic_pos, thr, custom_inputs$cf$ic_name_choice)
+    }
   }
   
   if (manual_y_range()) {

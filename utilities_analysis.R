@@ -337,8 +337,8 @@ z_score_outliers <- function(x,y=3) {
 
 # Calculate interquartile outliers
 interquartile_outliers <- function(x,y=NULL) {
-  lower_fence <- quantile(x, .25) - (1.5 * IQR(x))
-  upper_fence <- quantile(x, .75) + (1.5 * IQR(x))
+  lower_fence <- quantile(x, .25, na.rm = TRUE) - (1.5 * IQR(x, na.rm = TRUE))
+  upper_fence <- quantile(x, .75, na.rm = TRUE) + (1.5 * IQR(x, na.rm = TRUE))
 
   outliers <- rep(FALSE, length(x))
   outliers[x < lower_fence | x > upper_fence] <- TRUE

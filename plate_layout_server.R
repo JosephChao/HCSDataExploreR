@@ -205,17 +205,30 @@ output$data_upload_xl_sheet <- renderUI({
 output$data_upload_multitable <- renderUI({
   if (input$data_upload_format != "Long Table Format") {
     tagList(
-      div(title="Select 'TRUE' if multiple 'Microplate Format' or 'Timepoint x Well' tables are arranged vertically in a single .csv/.txt file or on a single .xlsx sheet. Does not support horizontally arranged tables.",
-          radioButtons("data_upload_multitable", label = "Multiple Tables", choices = c(FALSE, TRUE), inline = TRUE)
-      ),
+      # div(title="Select 'TRUE' if multiple 'Microplate Format' or 'Timepoint x Well' tables are arranged vertically in a single .csv/.txt file or on a single .xlsx sheet. Does not support horizontally arranged tables.",
+      #     radioButtons("data_upload_multitable", label = "Multiple Tables", choices = c(FALSE, TRUE), inline = TRUE)
+      # ),
       fluidRow(
         column(width = 4,
                div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
                    numericInput("data_upload_start_col", label = "Column Start:", value = 1, min = 1, step = 1))),
         column(width = 4,
                div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
-                   numericInput("data_upload_end_col", label = "Column End:", value = 2, min = 1, step = 1)))
+                   numericInput("data_upload_end_col", label = "Column End:", value = 13, min = 1, step = 1)))
       )
+    )
+  } else {
+    div(title="Enter the Well or Row and Column and/or Field header names. These fields can be left blank for the following auto-detected names: 'well', 'well name', wellid'; 'row', 'r'; 'column', 'col', 'c'; 'field', 'fieldnumber', 'site id' (case-insensitive)",
+        fluidRow(
+          column(width = 3,
+                 textInput("well_header_name", label = "Well Header")),
+          column(width = 3,
+                 textInput("row_header_name", label = "Row Header")),
+          column(width = 3,
+                 textInput("col_header_name", label = "Column Header")),
+          column(width = 3,
+                 textInput("field_header_name", label = "Field Header"))
+        )
     )
   }
 })
@@ -411,7 +424,13 @@ data_joined <- reactive({
                                 skipEmptyRows = ifelse(input$data_upload_clean_rows == "Yes", TRUE, FALSE))
           }
           
-          xl_dat <- format_hcs_data_fn(xl_dat)
+          xl_dat <- format_hcs_data_fn(xl_dat, manual_header_names_fn(
+            CHN = input$col_header_name,
+            WHN = input$well_header_name,
+            FHN = input$field_header_name,
+            RHN = input$row_header_name
+          ))
+          
           xl_dat$Plate <- getSheetNames(file_path)[x]
           
           filename <<- c(filename, paste(current_filename, x, sep = "-"))
@@ -422,17 +441,18 @@ data_joined <- reactive({
         
         #close manual Xlsx upload
       } else {
+        # manual csv/txt upload
         find_table <- list(
           skip_rows = input$data_upload_start_row - 1,
           separator = separatorList[[input$data_upload_separator]],
           decimal = decimalList[[input$data_upload_decimal]],
           table_format = input$data_upload_format,
-          columns = input$data_upload_start_col:input$data_upload_end_col
+          columns = mutate_null_fn(input$data_upload_start_col,1):mutate_null_fn(input$data_upload_end_col,2)
         )
         
         use_fread <- TRUE
-      }
-    }
+      } #close manual csv/txt upload
+    } #close manual upload
     
     if (use_fread) {
       if (find_table$table_format == "Microplate Format") {
@@ -453,7 +473,13 @@ data_joined <- reactive({
       
       setDF(dat)
       dat <- convert_microplate_format_fn(dat, find_table$table_format)
-      dat <- format_hcs_data_fn(dat)
+      
+      dat <- format_hcs_data_fn(dat, manual_header_names_fn(
+        CHN = input$col_header_name,
+        WHN = input$well_header_name,
+        FHN = input$field_header_name,
+        RHN = input$row_header_name
+      ))
       
       filename <<- c(filename, current_filename)
     }
@@ -605,7 +631,12 @@ layout_joined <- reactive({
   
   l <- lapply(input$layout_upload$datapath, function(file_path) {
     dat <- readr::read_csv(file_path, locale = locale(encoding = "ISO-8859-1"), show_col_types = FALSE)
+    dat[dat=="ÂµM"] <- "µM"
+    dat[dat=="Âµg/mL"] <- "µg/mL"
+    
+    return(dat)
     # try other encodings if UTF-8 doesn't work, e.g., "ISO-8859-1" or "latin1"
+    # encoding "ISO-8859-1" can handle more characters without crashing, but download is set to UTF-8 for proper loading of the µ character in excel. Uploading in ISO-8859-1 requires conversion back to µ
   })
 
   # Join all uploaded files into a single dataframe
@@ -627,11 +658,15 @@ observeEvent(input$layout_upload, {
   
   Missing <- setdiff(layout_cols, names(df))  # Find names of missing columns
   df[Missing] <- NA                      # Add them, filled with NA
-  df <- df[layout_cols]
+  # df <- df[layout_cols]
   
   # add back compatibility for layouts saved before Excluded and Control_Region columns were added
   if (any(is.na(df$Excluded))) {
     df$Excluded = FALSE
+  }
+  
+  if (all(is.na(df$Sample))) {
+    df$Sample <- "Unknown"
   }
   
   if (any(is.na(df$Control_Region) & !is.na(df$Sample))) {
@@ -963,9 +998,12 @@ observeEvent(input$clear_wells, {
     sel_well_ind <- which(pl$plate == sv$layout_plate_n_choice & pl$Well %in% input$well_selection)
   }
   
-  current_data$layout[sel_well_ind, Sample_col:(Excluded_col-1)] <- NA
   
-  current_data$layout[sel_well_ind, Excluded_col] <- FALSE
+  
+  # current_data$layout[sel_well_ind, Sample_col:(Excluded_col-1)] <- NA
+  current_data$layout[sel_well_ind, -match(Base_defs, names(pl))] <- NA
+  
+  current_data$layout[sel_well_ind, match("Excluded", names(pl))] <- FALSE
 }, ignoreInit = TRUE)
 
 #### Exclude wells ####
@@ -988,9 +1026,13 @@ observeEvent(input$reset, {
   
   selected_plate <- which(pl$plate == pn)
   
-  current_data$layout[selected_plate, Sample_col:(Excluded_col-1)] <- NA
+  # current_data$layout[selected_plate, Sample_col:(Excluded_col-1)] <- NA
+  # 
+  # current_data$layout[selected_plate, Excluded_col] <- FALSE
   
-  current_data$layout[selected_plate, Excluded_col] <- FALSE
+  current_data$layout[selected_plate, -match(Base_defs, names(pl))] <- NA
+  
+  current_data$layout[selected_plate, match("Excluded", names(pl))] <- FALSE
   
   # Delete layout file name from multiplate list
   current_data$layout_file[pn] <- current_data$layout$Layout[selected_plate] <- paste("Plate", pn)
@@ -1203,7 +1245,8 @@ output$downloadLayout <- downloadHandler(
     pl <- plate_layout_def_cf()
     pl[which(pl$plate == sv$layout_plate_n_choice), ] |>
       select(!contains("unique_") & !"plate" & !"definition") |>
-      write.csv(file, row.names = FALSE, fileEncoding = "ISO-8859-1")
+      # write.csv(file, row.names = FALSE, fileEncoding = "ISO-8859-1")
+      readr::write_excel_csv(file)
     
   }
 )
@@ -1503,3 +1546,11 @@ output$plate_layout <- renderTable({
     }
   }
 }, caption = "Plate Layout Table", caption.placement = "top")
+
+# output$testinglayout <- renderTable({
+#   current_data$layout
+# })
+# 
+# output$testinglayout2 <- renderTable({
+#   plate_layout_def_cf()
+# })

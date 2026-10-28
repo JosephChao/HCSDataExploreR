@@ -1,2 +1,0 @@
-@install.packages(c("base64enc", "checkmate", "data.table", "DBI", "dbplyr", "dplyr", "dtplyr", "future.apply", "ggplot2", "globals", "gridtext", "httr", "later", "lubridate", "openssl", "readr", "renv", "rgl", "robustbase", "shiny", "systemfonts", "timechange", "viridisLite", "vroom", "xtable"))
-install.packages(c("cluster", "foreign", "lattice", "mgcv", "survival"))

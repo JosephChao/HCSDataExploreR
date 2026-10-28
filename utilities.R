@@ -30,6 +30,19 @@
 # UDC = uninf_def_ctrl_data_selected() Average of uninfected controls by definition for selected HCS measurement
 
 #### Functions used in plate_layout_server.R ####
+manual_header_names_fn <- function(CHN,WHN,FHN,RHN) {
+  hn <- tolower(trimws(c("", CHN, WHN, FHN, RHN))) # order is important and must match list order of detectorSearch
+  hn_ind <- which(nzchar(hn))
+  
+  if (length(hn_ind) > 0) {
+    for (i in hn_ind) {
+      detectorSearch[i] <- hn[i]
+    }
+  }
+  
+  return(detectorSearch)
+}
+
 convert_microplate_format_fn <- function(DAT,TF) {
   if (!is.data.frame(DAT)) {
     return(empty_plate96)
@@ -42,7 +55,7 @@ convert_microplate_format_fn <- function(DAT,TF) {
   return(dat)
 }
 
-format_hcs_data_fn <- function(DAT) {
+format_hcs_data_fn <- function(DAT,HN=detectorSearch) {
   dat <- DAT
   # default_dat <- plate384[which(plate384$Column < 13 & plate384$Row %in% LETTERS[1:8]), c(1:3, 5)]
   
@@ -50,28 +63,31 @@ format_hcs_data_fn <- function(DAT) {
     return(empty_plate96)
   }
   
-  # Rename columns
-  if ("well" %in% names(dat)) 
-    names(dat)[names(dat) == "well"] <- "Well"
-  
-  if ("row" %in% names(dat)) 
-    names(dat)[names(dat) == "row"] <- "Row"
-  
-  if (any(c("col", "column") %in% names(dat))) 
-    names(dat)[names(dat) %in% c("col", "column")] <- "Column"
-  
+  # Rename Column, Well, Field, Row
+  for (i in 2:5) {
+    id <- which(HN[[i]] %in% tolower(names(dat)))
+    
+    if (length(id) > 0) {
+      names(dat)[tolower(names(dat)) == HN[[i]][id]] <- names(HN)[i]
+    }
+  }
   
   dat_names <- names(dat)
   
   if ("Well Name" %in% dat_names) {
-    names(dat)[dat_names == "Well Name"] <- "Well"
     names(dat) <- gsub("\\s*\\([^()]+\\)$", "", names(dat), useBytes = TRUE)  # Remove IXM Analysis name
     names(dat) <- gsub("Cell: ", "", names(dat), useBytes = TRUE)  # Remove 'Cell: ' prefix from IXM column names
-    names(dat)[names(dat) == "Site ID"] <- "Field"  # Change header in IXM data
   }
   
-  if ("Row" %in% dat_names & is.numeric(dat$Row)) {
-    dat$Row <- LETTERS[dat$Row]
+  # if ("Row" %in% dat_names & is.numeric(dat$Row)) {
+  #   dat$Row <- LETTERS[dat$Row]
+  # }
+  if ("Row" %in% dat_names) {
+    if (is.numeric(dat$Row)) {
+      dat$Row <- LETTERS[dat$Row]
+    } else {
+      dat$Row <- toupper(dat$Row)
+    }
   }
   
   if ("Column" %in% dat_names & !all(is.numeric(dat$Column))) {
@@ -104,8 +120,30 @@ format_hcs_data_fn <- function(DAT) {
   # if ("Time Point" %in% names(dat) & nrow(input$data_upload) == 1 & !0 %in% unique(dat[["Time Point"]])) {
   #   dat$plate <- dat[["Time Point"]]  # Note plate must be equivalent to time point for use in adding interval time points
   # }
-  
   return(dat)
+}
+
+# Plate Selector Plot function
+geom_point_fn <- function(DAT, DEF = "Sample", COND, ORNA = FALSE, ..., AES = FALSE, COL, SP = 16, SZ = 12) {
+  if (AES == FALSE) {
+    if (ORNA) {
+      r <- which(DAT[DEF] == COND | is.na(DAT[DEF]))
+    } else {
+      r <- which(DAT[DEF] == COND)
+    }
+    geom_point(data = DAT[r, ], aes(x = Column, y = Row), color = COL, shape = SP, size = SZ)
+  } else {
+    geom_point(data = DAT[which(DAT[DEF] == COND), ], aes(x = Column, y = Row, ...), shape = SP, size = SZ)
+  }
+}
+
+# cbind fill with NA - used in multiplate list in plate_layout_server
+cbind_fill_fn <- function(...){
+  nm <- list(...) 
+  nm <- lapply(nm, as.matrix)
+  n <- max(sapply(nm, nrow)) 
+  do.call(cbind, lapply(nm, function (x) 
+    rbind(x, matrix(, n-nrow(x), ncol(x))))) 
 }
 
 # # Enhanced format_hcs_data_fn with error handling
@@ -269,7 +307,7 @@ analysis_choice_fn <- function(RAW,OPT,ALL=FALSE) {
     filt_ind <- sapply(rawInputFilters, function(x) grepl(x, RAW))
     
     opt <- c("", OPT[which(OPT$filter_raw_input %in% rawInputFilters[filt_ind] | OPT$filter_raw_input == "ALL"), 1])
-    # print(opt)
+    
     if (grepl("%HIGH", RAW)) {
       opt <- opt[opt != "% HIGH"]
     }
@@ -329,27 +367,13 @@ pct_change_fn <- function(y, k) {
   (y - k) / k * 100
 }
 
-#### Plate Selector Plot function ####
-geom_point_fn <- function(DAT, DEF = "Sample", COND, ORNA = FALSE, ..., AES = FALSE, COL, SP = 16, SZ = 12) {
-  if (AES == FALSE) {
-    if (ORNA) {
-      r <- which(DAT[DEF] == COND | is.na(DAT[DEF]))
-    } else {
-      r <- which(DAT[DEF] == COND)
-    }
-    geom_point(data = DAT[r, ], aes(x = Column, y = Row), color = COL, shape = SP, size = SZ)
-  } else {
-    geom_point(data = DAT[which(DAT[DEF] == COND), ], aes(x = Column, y = Row, ...), shape = SP, size = SZ)
-  }
-}
-
-#### cbind fill with NA - used in multiplate list in plate_layout_server ####
-cbind_fill_fn <- function(...){
-  nm <- list(...) 
-  nm <- lapply(nm, as.matrix)
-  n <- max(sapply(nm, nrow)) 
-  do.call(cbind, lapply(nm, function (x) 
-    rbind(x, matrix(, n-nrow(x), ncol(x))))) 
+#### Functions used in analysis_server.R ####
+numeric_col_names_fn <- function(DAT) {
+  ign <- unique(match(c("Plate", "Row", "Column", "Well", "plate", "Field", "Control_Region"), names(DAT), nomatch = 0))
+  
+  numeric_col_ind <- as.logical(lapply(DAT[, -ign], is.numeric))
+  numeric_col_names <- names(DAT[, -ign])[which(numeric_col_ind)]
+  return(numeric_col_names)
 }
 
 #### Average ####
@@ -429,7 +453,7 @@ plate_average_fn <- function(DAT,INFO,DBL=FALSE) {
 
 #### Best Fit Curve Functions ####
 cf_compound_fn <- function(DAT, UNM = "unique_compound", DOSE = "Concentration", EXC = TRUE) {
-  # print("cf_compound_fn")
+  
   if (!UNM %in% colnames(DAT) | !DOSE %in% colnames(DAT)) {return(NULL)}
   # dat <- DAT[which(DAT$Sample != "Uninfected Control" & DAT$plate %in% PLT), ]
   # dat <- DAT[which(DAT$plate %in% PLT), ]
@@ -452,8 +476,6 @@ predict_cf_fn <- function(DAT,SELN,FCT) {
   choice <- SELN
   dat <- DAT
   
-  # print(names(dat))
-
   if (names(dat)[4] == "Value_2") {
     names(dat)[names(dat) == "Value_2"] <- "Value"
   }
@@ -479,8 +501,11 @@ predict_cf_fn <- function(DAT,SELN,FCT) {
 }
 
 
-#### Calculate MIC50, MIC90, IC50 ####
-ic_fn <- function(DAT,DAT2,CALC,ICPOS) {
+#### Calculate Interpolation values ####
+ic_fn <- function(DAT,DAT2,CALC,ICPOS,THR,TXT="IC") {
+  
+  thr <- THR[1:min(length(THR), 2)]
+  
   # Set IC text label position at top left of graph based on max Y value or max manual Y-axis range
   if (is.null(ICPOS)) {
     ic_pos <- max(DAT2$Value,92)*1.08
@@ -488,7 +513,9 @@ ic_fn <- function(DAT,DAT2,CALC,ICPOS) {
     ic_pos <- ICPOS
   }
   
-  ic <- as.data.frame(do.call(rbind,lapply(c(50,90),function(i) {
+  ic_posx <- min(DAT2$Dose) * 1.1
+  
+  ic <- as.data.frame(do.call(rbind,lapply(thr,function(i) {
     if (max(DAT$Prediction) >= i & min(DAT$Prediction) <= i) {
       index <- which.min(abs(DAT$Prediction - i))
     } else {
@@ -500,12 +527,12 @@ ic_fn <- function(DAT,DAT2,CALC,ICPOS) {
     mutate(Dif = abs(Target - Prediction),
            dose_seq = ifelse((Index == 1 | Index == 1000) & Dif > 0.01, NA, round(dose_seq,2)))
   
-  if (CALC == "% Cell Survival") {
-    return(annotate("text", x=min(DAT2$Dose) * 1.1, y = ic_pos,
-                    label = paste("IC50:",ic$dose_seq[1])))
+  if (length(thr) > 1) {
+      return(annotate("text", x=ic_posx, y = ic_pos,
+                      label = paste0(TXT,thr[1], ": ", ic$dose_seq[1], "\n", TXT, thr[2], ": ", ic$dose_seq[2]), hjust = 0))
   } else {
-    return(annotate("text", x=min(DAT2$Dose) * 1.1, y = ic_pos,
-                    label = paste("MIC50:",ic$dose_seq[1],"\nMIC90:",ic$dose_seq[2])))
+    return(annotate("text", x=ic_posx, y = ic_pos,
+                    label = paste0(TXT, thr, ": ", ic$dose_seq[1]), hjust = 0))
   }
 }
 

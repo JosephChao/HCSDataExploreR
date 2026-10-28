@@ -473,7 +473,7 @@ customization_moduleUI <- function(id) {
                )
              ),
              conditionalPanel(
-               condition = "input.tabset_panel == 'Plate View'",
+               condition = "input.tabset_panel == 'Plate View' && input.navbar == 'Analysis'",
                
                fluidRow(
                  column(width = 4,
@@ -481,13 +481,32 @@ customization_moduleUI <- function(id) {
                  column(width = 4,
                         uiOutput(ns("cp_auto_val"))),
                  column(width = 4,
-                        colourpicker::colourInput(ns("cp_text_colr"), "Text Colour", returnName = TRUE,  allowTransparent = TRUE, value = "white")
+                        colourpicker::colourInput(
+                          ns("cp_text_colr"),
+                          "Text Colour",
+                          returnName = TRUE,
+                          allowTransparent = TRUE,
+                          value = "white"
+                        )
                  )
                ),
-               
-               
                uiOutput(ns("cp_colr")),
                uiOutput(ns("cp_val")),
+             ),
+             
+             conditionalPanel(
+               condition = "input.tabset_panel == 'Curve Fit' && input.navbar == 'Analysis'",
+               
+               fluidRow(
+                 column(width = 3,
+                        uiOutput(ns("ic_show_val"))),
+                 column(width = 3,
+                        uiOutput(ns("ic_show_threshold"))),
+                 column(width = 3,
+                        uiOutput(ns("ic_position"))),
+                 column(width = 3,
+                        uiOutput(ns("ic_name"))),
+               )
              ),
              circle = FALSE, status = "info", icon = icon("cog"), width = "600px",
              tooltip = shinyWidgets::tooltipOptions(title = "Customize plot appearance")
@@ -777,6 +796,37 @@ customization_moduleServer <- function(id, current_tab, sv, plate_layout_def, pl
         sv$pv_customization[[paste0(x, "_choice")]] <<- input[[x]]
       }, ignoreInit = TRUE)
     })
+    
+    output$ic_show_val <- renderUI({
+      checkboxInput(ns("ic_show_val"),label = "Show Interpolation",
+                    value = isolate(sv[[id]]$ic_show_val_choice))
+    })
+    observeEvent(input$ic_show_val, {sv[[id]]$ic_show_val_choice <<- input$ic_show_val}, ignoreInit = TRUE)
+    
+    output$ic_show_threshold <- renderUI({
+      checkboxInput(ns("ic_show_threshold"),label = "Show Threshold Line",
+                    value = isolate(sv[[id]]$ic_show_threshold_choice))
+    })
+    observeEvent(input$ic_show_threshold, {sv[[id]]$ic_show_threshold_choice <<- input$ic_show_threshold}, ignoreInit = TRUE)
+    
+    output$ic_position <- renderUI({
+      selectInput(ns("ic_position"),
+                  label = "Position",
+                  choices = c("Top Left", "Top Right", "Bottom Left", "Bottom Right"),
+                  selected = isolate(sv[[id]]$ic_position_choice)
+      )
+    })
+    observeEvent(input$ic_position, {sv[[id]]$ic_position_choice <<- input$ic_position}, ignoreInit = TRUE)
+    
+    output$ic_name <- renderUI({
+      textInput(ns("ic_name"),
+                label = "Prefix",
+                value = sv[[id]]$ic_name_choice,
+                placeholder = "MIC")
+    })
+    observeEvent(input$ic_name, {sv[[id]]$ic_name_choice <<- input$ic_name}, ignoreInit = TRUE)
+    
+    
     
     observeEvent(input$customization_apply, {
       # Close the dropdown manually with JavaScript

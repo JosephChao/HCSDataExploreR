@@ -1,5 +1,3 @@
-
-
 #### Load library ####
 library(shiny)
 library(dplyr)
@@ -18,7 +16,7 @@ library(openxlsx)
 
 
 # Version
-version_number <- 1.026
+version_number <- 1.027
 # 0.93: add appended data to save project
 # 0.94: add plate size selector and clear uploaded data
 # 0.95: add x_axis_order and group_order. fix sp2
@@ -99,7 +97,13 @@ version_number <- 1.026
 #        Update analysisFuncs.csv for Transform function. (Need to add Z score info)
 # 1.026: 2026-06-29 Save PV settings. Clean all commented out data. Update colorPickerInputIDs. Update sample data. 
 #        Add tooltip for Manual Y-axis settings for dual analysis
-#
+# 1.027: 2026-10-24 Remove requirement for specific layout definitions. Update clear and reset wells to allow for custom layout definitions.
+#        Find numeric columns. Update sample data (remove name). 
+#        Fix manual upload columns input. Find case insensitive Well, Row, Column, Field headers. Add manual input of these header names.
+#        Change download of plate layout to UTF-8 encoding and add sub of mu character to uploading
+#        Fixed plate view customization settings showing up on Dual Analysis tab
+#        Update MIC/IC50 values to any interpolated value using Threshold and add customization options
+#        Update name to HCS DataExploreR
 
 # options(shiny.reactlog = TRUE)  # log visualizer (press Ctrl F3 after loading app)
 
@@ -150,14 +154,16 @@ layout_cols <- c("Row",
                  "unique_compound_2",
                  "Excluded")
 
-Sample_col <- match("Sample", layout_cols)  # quick access to indexing Sample column in layout
-Control_Region_col <- match("Control_Region", layout_cols)
-Excluded_col <- match("Excluded", layout_cols)  # quick access to indexing Excluded column in layout
 
+# Sample_col <- match("Sample", layout_cols)  # quick access to indexing Sample column in layout
+# Control_Region_col <- match("Control_Region", layout_cols)
+# Excluded_col <- match("Excluded", layout_cols)  # quick access to indexing Excluded column in layout
+
+Base_defs <- c("Row", "Column", "Well", "Layout", "plate")
 Numeric_defs <- c("Duration", "Concentration", "Concentration_2")
 Unit_defs <- c("duration_units", "concentration_units", "concentration_units_2")
 
-Basic_defs <- layout_cols[Sample_col:Control_Region_col]
+Basic_defs <- layout_cols[match("Sample", layout_cols):match("Control_Region", layout_cols)]
 Basic_defs_no_units <- Basic_defs[!Basic_defs %in% Unit_defs]
 
 Sample_controls <- c("Positive Control",
@@ -311,7 +317,7 @@ source('html_header.R', local = TRUE)
 
 #### ---UI--- ####
 ui <- navbarPage(
-  paste0("HCS DataExplorer v", sprintf("%.3f", version_number)), id = "navbar",
+  paste0("HCS DataExploreR v", sprintf("%.3f", version_number)), id = "navbar",
   
   header = html_header,
 
