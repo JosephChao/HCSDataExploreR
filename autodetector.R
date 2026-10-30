@@ -6,14 +6,6 @@ detectorSearch <- list(
   "Row" = c("row", "r")
 ) # list order must match list order of header_names in plate_layout_server. All names must be in lower case
 
-# detectorSearch <- list(
-#   "1"    = 1:3,
-#   "Column"  = c("Column", "column", "Col", "col", "c"),
-#   "Well" = c("Well", "Well Name", "WellId", "well"),
-#   "Field" = c("Field", "FieldNumber", "Site ID"),
-#   "Row" = c("Row", "row", "r")
-# )
-
 detectorSeps <- list("," = ",", "\t" = "\t", ";" = ";")
 
 detectorNotFound <- list(

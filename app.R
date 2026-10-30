@@ -16,7 +16,7 @@ library(openxlsx)
 
 
 # Version
-version_number <- 1.027
+version_number <- 1.028
 # 0.93: add appended data to save project
 # 0.94: add plate size selector and clear uploaded data
 # 0.95: add x_axis_order and group_order. fix sp2
@@ -104,6 +104,7 @@ version_number <- 1.027
 #        Fixed plate view customization settings showing up on Dual Analysis tab
 #        Update MIC/IC50 values to any interpolated value using Threshold and add customization options
 #        Update name to HCS DataExploreR
+# 1.028: 2026-10-29 Fix numeric_col_names_fn loading microplate format data
 
 # options(shiny.reactlog = TRUE)  # log visualizer (press Ctrl F3 after loading app)
 
@@ -153,7 +154,6 @@ layout_cols <- c("Row",
                  "unique_compound",
                  "unique_compound_2",
                  "Excluded")
-
 
 # Sample_col <- match("Sample", layout_cols)  # quick access to indexing Sample column in layout
 # Control_Region_col <- match("Control_Region", layout_cols)

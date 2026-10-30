@@ -369,10 +369,11 @@ pct_change_fn <- function(y, k) {
 
 #### Functions used in analysis_server.R ####
 numeric_col_names_fn <- function(DAT) {
-  ign <- unique(match(c("Plate", "Row", "Column", "Well", "plate", "Field", "Control_Region"), names(DAT), nomatch = 0))
   
-  numeric_col_ind <- as.logical(lapply(DAT[, -ign], is.numeric))
-  numeric_col_names <- names(DAT[, -ign])[which(numeric_col_ind)]
+  numeric_col_ind <- as.logical(lapply(DAT, is.numeric))
+  numeric_col_names <- names(DAT)[which(numeric_col_ind)]
+  numeric_col_names <- numeric_col_names[!numeric_col_names %in% c("Plate", "Row", "Column", "Well", "plate", "Field", "Control_Region")]
+  
   return(numeric_col_names)
 }
 

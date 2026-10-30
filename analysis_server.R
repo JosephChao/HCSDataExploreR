@@ -187,9 +187,6 @@ layout_info <- reactive({
 data_info <- reactive({
   dat <- hcs_data()
   layout_info <- layout_info()
-  # numeric_col_ind <- as.logical(lapply(dat, is.numeric))
-  # numeric_col_names <- names(dat[, -ign])[which(numeric_col_ind)]
-  # numeric_col_names <- numeric_col_names[!numeric_col_names %in% c("Plate", "Row", "Column", "Well", "plate", "Field")]
   
   plt_n <- unique(dat$plate)
   multiplate <- length(plt_n) > 1
