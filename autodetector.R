@@ -48,14 +48,16 @@ autodetector_fn <- function(DAT, SEPS=detectorSeps) {
   # identify the type of table (1 = microplate, or if Well or Column header found)
   table_id <- rownames(counts)[ind[1,1]]
   
-  
   # Find the column to search (Same column as "Well" or "Column", but column before if "1, 2, 3")
   # col_pos <- which(str_split(DAT[start_row], sep)[[1]] %in% detectorSearch[[table_id]])[1] - ifelse(table_id == "1", 1, 0)
   col_pos <- which(str_split(tolower(DAT[start_row]), sep)[[1]] %in% detectorSearch[[table_id]])[1] - ifelse(table_id == "1", 1, 0)
   
   if (table_id == "1") {
     vals <- str_split(DAT[start_row], sep)[[1]]
-    end_col <- which(vals[col_pos + 1:length(vals)] == "NA" | vals[col_pos + 1:length(vals)] == "")[1]
+    end_col <- mutate_null_fn(
+      which(vals[col_pos + 1:length(vals)] == "NA" | vals[col_pos + 1:length(vals)] == "")[1],
+      length(vals)
+    )
     
     upload_cols <- col_pos:(end_col + col_pos - 1)
     
@@ -74,8 +76,8 @@ autodetector_fn <- function(DAT, SEPS=detectorSeps) {
   
   data_match <- switch(
     table_id,
-    "1"    = grepl("^([A-Za-z]|A[A-F]|a[a-f])$", tf),
-    "Well" = grepl("^([A-Za-z]|A[A-F]|a[a-f])(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
+    "1"    = grepl("^([A-Za-z]|[Aa][A-Fa-f])$", tf),
+    "Well" = grepl("^([A-Za-z]|[Aa][A-Fa-f])(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
     "Column"  = grepl("^(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])$", tf),
     FALSE
   )

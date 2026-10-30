@@ -16,7 +16,7 @@ library(openxlsx)
 
 
 # Version
-version_number <- 1.028
+version_number <- 1.029
 # 0.93: add appended data to save project
 # 0.94: add plate size selector and clear uploaded data
 # 0.95: add x_axis_order and group_order. fix sp2
@@ -105,6 +105,8 @@ version_number <- 1.028
 #        Update MIC/IC50 values to any interpolated value using Threshold and add customization options
 #        Update name to HCS DataExploreR
 # 1.028: 2026-10-29 Fix numeric_col_names_fn loading microplate format data
+# 1.029: 2026-10-30 Add Timepoint x Well manual upload
+#        Fix single microplate csv upload. Remove manual Column upload options
 
 # options(shiny.reactlog = TRUE)  # log visualizer (press Ctrl F3 after loading app)
 

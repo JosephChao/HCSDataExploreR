@@ -123,6 +123,92 @@ format_hcs_data_fn <- function(DAT,HN=detectorSearch) {
   return(dat)
 }
 
+# Convert Time x Well
+txw_extract_tables_fn <- function(DAT,PN=NULL) {
+  dt <- DAT
+  
+  # Find empty column 2 rows
+  empty_row_indices <- which(dt[, 1] == "" | is.na(dt[, 1]))
+  
+  # Append the start and end of the data to these indices to handle the first and last tables
+  empty_row_indices <- c(0, empty_row_indices, nrow(dt) + 1)
+  
+  if (length(PN) == 0) {
+    PN <- paste0("Value",1:(length(empty_row_indices) - 1))
+  }
+  
+  # Initialize a list to store tables
+  long_tables <- list()
+  
+  j <- 0
+  
+  # Extract tables based on empty row boundaries
+  for (i in seq_along(empty_row_indices)[-length(empty_row_indices)]) {
+    start <- empty_row_indices[i] + 1
+    end <- empty_row_indices[i + 1]
+    
+    if (end - start > 2) {
+      
+      table <- dt[start:end, ]
+      
+      well_ind <- which(vapply(
+        table[1, 1:10],
+        function(x) any(grepl("^([A-Za-z]|[Aa][A-Fa-f])(0[1-9]|[1-9]|[1-3][0-9]|4[0-8])(, [Ii]mage [0-9]+)?$", x)),
+        logical(1)
+      ))[1]
+      
+      if (!is.na(well_ind)) {
+        j <- j + 1
+        # Set column names based on first row
+        setnames(table, as.character(unlist(table[1, ])))
+        n <- ncol(table)
+        
+        # reshape to long format
+        long_dt <- melt(
+          table[-1, ],
+          id.vars = 1:(well_ind - 1),
+          measure.vars = well_ind:n,
+          variable.name = "Well",
+          value.name = PN[j])
+        
+        long_dt[, (PN[j]) := as.numeric(get(PN[j]))]
+        
+        # add to list
+        long_tables[[j]] <- long_dt
+      }
+    }
+  }
+  
+  return(long_tables)
+}
+
+txw_format_tables_fn <- function(DAT) {
+  dt <- as.data.table(DAT)
+  
+  param_id <- "Metric:"
+  param_names <- dt[grepl(param_id, dt[[1]]), 1][[1]]
+  param_names <- gsub(param_id, "", param_names) |>
+    trimws()
+  
+  long_tables <- txw_extract_tables_fn(dt, param_names)
+  joined_dt <- as.data.table(purrr::reduce(long_tables, left_join, by = c("Well", "Elapsed", "Date Time")))
+ 
+  if (grepl("Image", joined_dt[1, Well])) {  # Check if Fields are included
+    joined_dt[, c("Well", "Field") := tstrsplit(Well, ", ", fixed = TRUE)]
+    joined_dt[, Field := as.integer(gsub("[^0-9]", "", Field))]
+    # joined_dt[, Field := as.integer(substring(Field, 7))]
+  }
+  
+  joined_dt[, c("Timepoint", "plate") := match(Elapsed, unique(Elapsed))]
+  
+  joined_dt[, c("Row", "Column") := .(substr(Well, 1, 1), as.integer(substring(Well, 2)))]
+  
+  setcolorder(joined_dt, c("plate", "Row", "Column"))
+  setorder(joined_dt, plate, Row, Column)
+  
+  return(as.data.frame(joined_dt))
+}
+
 # Plate Selector Plot function
 geom_point_fn <- function(DAT, DEF = "Sample", COND, ORNA = FALSE, ..., AES = FALSE, COL, SP = 16, SZ = 12) {
   if (AES == FALSE) {

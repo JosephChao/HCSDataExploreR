@@ -204,19 +204,19 @@ output$data_upload_xl_sheet <- renderUI({
 
 output$data_upload_multitable <- renderUI({
   if (input$data_upload_format != "Long Table Format") {
-    tagList(
-      # div(title="Select 'TRUE' if multiple 'Microplate Format' or 'Timepoint x Well' tables are arranged vertically in a single .csv/.txt file or on a single .xlsx sheet. Does not support horizontally arranged tables.",
-      #     radioButtons("data_upload_multitable", label = "Multiple Tables", choices = c(FALSE, TRUE), inline = TRUE)
-      # ),
-      fluidRow(
-        column(width = 4,
-               div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
-                   numericInput("data_upload_start_col", label = "Column Start:", value = 1, min = 1, step = 1))),
-        column(width = 4,
-               div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
-                   numericInput("data_upload_end_col", label = "Column End:", value = 13, min = 1, step = 1)))
-      )
-    )
+    # tagList(
+    #   # div(title="Select 'TRUE' if multiple 'Microplate Format' or 'Timepoint x Well' tables are arranged vertically in a single .csv/.txt file or on a single .xlsx sheet. Does not support horizontally arranged tables.",
+    #   #     radioButtons("data_upload_multitable", label = "Multiple Tables", choices = c(FALSE, TRUE), inline = TRUE)
+    #   # ),
+    #   fluidRow(
+    #     column(width = 4,
+    #            div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
+    #                numericInput("data_upload_start_col", label = "Column Start:", value = 1, min = 1, step = 1))),
+    #     column(width = 4,
+    #            div(title = "If uploading multiple files or excel sheets, data must all be in the same columns (empty columns are fine). Use Auto-Detect for multi-file/sheet data in different columns.",
+    #                numericInput("data_upload_end_col", label = "Column End:", value = 13, min = 1, step = 1)))
+    #   )
+    # )
   } else {
     div(title="Enter the Well or Row and Column and/or Field header names. These fields can be left blank for the following auto-detected names: 'well', 'well name', wellid'; 'row', 'r'; 'column', 'col', 'c'; 'field', 'fieldnumber', 'site id' (case-insensitive)",
         fluidRow(
@@ -407,15 +407,27 @@ data_joined <- reactive({
         sheets = mutate_null_fn(threshold_line_fn(input$data_upload_xl_sheet), getSheetNames(file_path))
         
         dat <- lapply(sheets, function(x) {
-          if (input$data_upload_format != "Long Table Format") {
+          if (input$data_upload_format == "Microplate Format") {
             xl_dat <- read.xlsx(file_path,
                                 sheet = x,
                                 startRow = input$data_upload_start_row,
-                                cols = input$data_upload_start_col:input$data_upload_end_col,
+                                # cols = input$data_upload_start_col:input$data_upload_end_col,
                                 sep.names = " ",
+                                # colNames = FALSE,
                                 skipEmptyRows = ifelse(input$data_upload_clean_rows == "Yes", TRUE, FALSE))
             
             xl_dat <- convert_microplate_format_fn(xl_dat, input$data_upload_format)
+            
+          } else if (input$data_upload_format == "Timepoint x Well") {
+            xl_dat <- read.xlsx(file_path,
+                                sheet = x,
+                                startRow = input$data_upload_start_row,
+                                sep.names = " ",
+                                colNames = FALSE,
+                                skipEmptyRows = FALSE)
+            
+            xl_dat <- txw_format_tables_fn(xl_dat)
+            
           } else {
             xl_dat <- read.xlsx(file_path,
                                 sheet = x,
@@ -446,8 +458,8 @@ data_joined <- reactive({
           skip_rows = input$data_upload_start_row - 1,
           separator = separatorList[[input$data_upload_separator]],
           decimal = decimalList[[input$data_upload_decimal]],
-          table_format = input$data_upload_format,
-          columns = mutate_null_fn(input$data_upload_start_col,1):mutate_null_fn(input$data_upload_end_col,2)
+          table_format = input$data_upload_format
+          # columns = mutate_null_fn(input$data_upload_start_col,1):mutate_null_fn(input$data_upload_end_col,13)
         )
         
         use_fread <- TRUE
@@ -455,31 +467,55 @@ data_joined <- reactive({
     } #close manual upload
     
     if (use_fread) {
+      
       if (find_table$table_format == "Microplate Format") {
         dat <- fread(file_path,
                      skip = find_table$skip_rows,
                      sep = find_table$separator,
                      dec = find_table$decimal,
-                     select = find_table$columns,  # specify columns to upload
+                     # select = find_table$columns,  # specify columns to upload
                      header = TRUE,
                      fill = TRUE)
+        
+        setDF(dat)
+        dat <- convert_microplate_format_fn(dat, find_table$table_format) |>
+          format_hcs_data_fn()
+        
+      } else if (find_table$table_format == "Timepoint x Well") {
+        dat <- fread(file_path,
+                     skip = find_table$skip_rows,
+                     sep = find_table$separator,
+                     dec = find_table$decimal,
+                     header = TRUE,
+                     fill = TRUE)
+        
+        dat <- txw_format_tables_fn(dat)
+        
+        setDF(dat)
+        
       } else {
-        dat <- fread(file_path, skip = find_table$skip_rows, sep = find_table$separator, dec = find_table$decimal, header = TRUE, fill = TRUE)
+        dat <- fread(file_path,
+                     skip = find_table$skip_rows,
+                     sep = find_table$separator,
+                     dec = find_table$decimal,
+                     header = TRUE,
+                     fill = TRUE)
+        setDF(dat)
+        
+        dat <- format_hcs_data_fn(dat, manual_header_names_fn(
+          CHN = input$col_header_name,
+          WHN = input$well_header_name,
+          FHN = input$field_header_name,
+          RHN = input$row_header_name
+        ))
       }
       
       if (input$data_upload_detect_format == "Manual" & mutate_null_fn(input$data_upload_clean_rows) == "Yes") {
         dat <- dat[rowSums(is.na(dat) | dat == "") < ncol(dat), ]
       }
       
-      setDF(dat)
-      dat <- convert_microplate_format_fn(dat, find_table$table_format)
-      
-      dat <- format_hcs_data_fn(dat, manual_header_names_fn(
-        CHN = input$col_header_name,
-        WHN = input$well_header_name,
-        FHN = input$field_header_name,
-        RHN = input$row_header_name
-      ))
+      # setDF(dat)
+      # dat <- convert_microplate_format_fn(dat, find_table$table_format)
       
       filename <<- c(filename, current_filename)
     }
@@ -1548,9 +1584,9 @@ output$plate_layout <- renderTable({
 }, caption = "Plate Layout Table", caption.placement = "top")
 
 # output$testinglayout <- renderTable({
-#   current_data$layout
+#   current_data$data
 # })
 # 
 # output$testinglayout2 <- renderTable({
-#   plate_layout_def_cf()
+#   data_joined()
 # })
